@@ -12,11 +12,25 @@ export interface LocalDbSchema {
 
 export class DbHelper {
   private static fallbackPath = path.resolve(process.cwd(), 'database_fallback.json');
+  private static inMemoryDb: LocalDbSchema | null = null;
 
   private static loadLocal(): LocalDbSchema {
+    if (process.env.VERCEL) {
+      if (!this.inMemoryDb) {
+        this.inMemoryDb = { companies: [], researchLogs: [], browserLogs: [], errorLogs: [], whatsAppGroups: [] };
+      }
+      return this.inMemoryDb;
+    }
+
     if (!fs.existsSync(this.fallbackPath)) {
       const init: LocalDbSchema = { companies: [], researchLogs: [], browserLogs: [], errorLogs: [], whatsAppGroups: [] };
-      fs.writeFileSync(this.fallbackPath, JSON.stringify(init, null, 2), 'utf8');
+      try {
+        fs.writeFileSync(this.fallbackPath, JSON.stringify(init, null, 2), 'utf8');
+      } catch (err) {
+        console.warn('[DbHelper] Read-only file system, falling back to memory database.');
+        this.inMemoryDb = init;
+        return this.inMemoryDb;
+      }
       return init;
     }
     try {
@@ -32,7 +46,15 @@ export class DbHelper {
   }
 
   private static saveLocal(data: LocalDbSchema) {
-    fs.writeFileSync(this.fallbackPath, JSON.stringify(data, null, 2), 'utf8');
+    if (process.env.VERCEL || this.inMemoryDb) {
+      this.inMemoryDb = data;
+      return;
+    }
+    try {
+      fs.writeFileSync(this.fallbackPath, JSON.stringify(data, null, 2), 'utf8');
+    } catch {
+      this.inMemoryDb = data;
+    }
   }
 
   /**
