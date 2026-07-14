@@ -323,10 +323,14 @@ app.post('/whatsapp/similar', async (req, res) => {
   res.json({ success: true, recommendations });
 });
 
-// Start listening
-app.listen(PORT, () => {
-  console.log(`\n======================================================`);
-  console.log(`[SERVER] Express backend running at http://localhost:${PORT}`);
-  console.log(`[SERVER] Serve static HTML at http://localhost:${PORT}/demo.html`);
-  console.log(`======================================================\n`);
-});
+// Start listening (Only boot standalone port listener in local development, not on Vercel Serverless)
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`\n======================================================`);
+    console.log(`[SERVER] Express backend running at http://localhost:${PORT}`);
+    console.log(`[SERVER] Serve static HTML at http://localhost:${PORT}/demo.html`);
+    console.log(`======================================================\n`);
+  });
+}
+
+export default app;
