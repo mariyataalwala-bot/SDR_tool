@@ -1,0 +1,41 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "src/server.ts",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/whatsapp/discover",
+      "dest": "src/server.ts"
+    },
+    {
+      "src": "/whatsapp/search",
+      "dest": "src/server.ts"
+    },
+    {
+      "src": "/whatsapp/reverify",
+      "dest": "src/server.ts"
+    },
+    {
+      "src": "/whatsapp/similar",
+      "dest": "src/server.ts"
+    },
+    {
+      "src": "/health",
+      "dest": "src/server.ts"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "public/$1"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/whatsapp/reverify",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}
