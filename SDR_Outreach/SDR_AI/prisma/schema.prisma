@@ -1,0 +1,166 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Company {
+  id            Int             @id @default(autoincrement())
+  name          String          @unique
+  website       String          @unique
+  industry      String?
+  headquarters  String?
+  employeeCount Int?
+  status        String          @default("NEW")
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  researches    Research[]
+  contacts      Contact[]
+  activities    Activity[]
+  pipelines     Pipeline[]
+  pipelineStates PipelineState[]
+
+  @@index([status])
+  @@index([name])
+  @@map("companies")
+}
+
+model Research {
+  id                 Int      @id @default(autoincrement())
+  companyId          Int
+  company            Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  description        String?
+  category           String?
+  activeMarketplaces String?
+  reputationRating   Float?
+  marketplaceDetails String?  // JSON string storing details of Amazon, Flipkart, etc.
+  createdAt          DateTime @default(now())
+
+  @@index([companyId])
+  @@map("research")
+}
+
+model Contact {
+  id              Int        @id @default(autoincrement())
+  companyId       Int
+  company         Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name            String
+  designation     String
+  linkedin        String?
+  email           String?
+  phone           String?
+  sources         String?    // Comma-separated list of sources
+  confidence      Float?     // Score between 0 and 100
+  connectionNote  String?
+  emailSubject    String?
+  emailBody       String?
+  followupSubject String?
+  followupBody    String?
+  additionalNotes String?
+  createdAt       DateTime   @default(now())
+  activities      Activity[]
+
+  @@unique([companyId, email])
+  @@index([email])
+  @@map("contacts")
+}
+
+model Activity {
+  id             Int      @id @default(autoincrement())
+  companyId      Int
+  company        Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  contactId      Int?
+  contact        Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  type           String   // outbound, inbound
+  channel        String   // LinkedIn, Email, WhatsApp
+  status         String   // SENT, DELIVERED, REPLIED, etc.
+  messageContent String
+  timestamp      DateTime @default(now())
+
+  @@index([companyId])
+  @@map("activities")
+}
+
+model Pipeline {
+  id        Int      @id @default(autoincrement())
+  companyId Int
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  stage     String   // e.g. 'Approved for Outreach', 'Rejected for Outreach'
+  comments  String?
+  timestamp DateTime @default(now())
+
+  @@index([companyId])
+  @@map("pipeline")
+}
+
+model PipelineState {
+  id        Int      @id @default(autoincrement())
+  companyId Int
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  state     String   // e.g. Queued, Research, Normalization, Persisted, Completed, Failed
+  comments  String?
+  timestamp DateTime @default(now())
+
+  @@index([companyId])
+  @@map("pipeline_states")
+}
+
+model ResearchLog {
+  id              Int      @id @default(autoincrement())
+  searchQuery     String
+  urlsVisited     String   // Comma-separated or JSON
+  extractedFields String   // JSON string
+  confidence      Float?
+  errors          String?
+  apiUsage        String?
+  browserDuration Int?     // In milliseconds
+  timestamp       DateTime @default(now())
+
+  @@index([searchQuery])
+  @@map("research_logs")
+}
+
+model BrowserLog {
+  id        Int      @id @default(autoincrement())
+  action    String   // e.g. LAUNCH, NAVIGATE, COOKIES
+  url       String?
+  message   String
+  timestamp DateTime @default(now())
+
+  @@index([action])
+  @@map("browser_logs")
+}
+
+model ErrorLog {
+  id        Int      @id @default(autoincrement())
+  context   String   // e.g. ResearchService, LinkedInDiscovery
+  message   String
+  stack     String?
+  timestamp DateTime @default(now())
+
+  @@index([context])
+  @@map("error_logs")
+}
+
+model WhatsAppGroup {
+  id          Int      @id @default(autoincrement())
+  title       String
+  inviteLink  String   @unique
+  description String?
+  country     String?
+  city        String?
+  language    String?
+  category    String?
+  tags        String?  // Stored as comma-separated or JSON string
+  source      String?
+  lastChecked DateTime @default(now())
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@index([inviteLink])
+  @@index([active])
+  @@map("whatsapp_groups")
+}

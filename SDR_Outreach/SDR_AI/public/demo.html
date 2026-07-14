@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI SDR Agent Platform Console</title>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+      --accent-amber: #f59e0b;
+      --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      --backdrop-blur: blur(12px);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.5);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(99, 102, 241, 0.3);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(99, 102, 241, 0.6);
+    }
+
+    /* Layout Components */
+    header {
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: var(--backdrop-blur);
+    }
+
+    .brand-section h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, #a78bfa 0%, #6366f1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+
+    .brand-section p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .btn {
+      background: var(--primary);
+      color: var(--text-main);
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn:hover {
+      background: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      box-shadow: none;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-2px);
+    }
+
+    main {
+      flex: 1;
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Glassmorphic Grid Cards */
+    .dashboard-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      box-shadow: var(--glass-shadow);
+      backdrop-filter: var(--backdrop-blur);
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .panel-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 0.5rem;
+    }
+
+    /* Metric Counters */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .metric-card {
+      background: rgba(15, 23, 42, 0.3);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.2rem;
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+
+    .metric-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .metric-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.25rem;
+    }
+
+    .metric-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Leads Table */
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    th {
+      color: var(--text-muted);
+      font-weight: 500;
+      padding: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    td {
+      padding: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.6rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .status-approved {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-green);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .status-rejected {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--accent-red);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .status-new {
+      background: rgba(99, 102, 241, 0.15);
+      color: var(--primary);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+
+    /* Sidebar Event Log */
+    .sidebar-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .event-ledger {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      max-height: 480px;
+      overflow-y: auto;
+    }
+
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      position: relative;
+      padding-left: 1rem;
+      border-left: 2px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .timeline-item {
+      position: relative;
+    }
+
+    .timeline-dot {
+      width: 10px;
+      height: 10px;
+      background: var(--primary);
+      border-radius: 50%;
+      position: absolute;
+      left: -16px;
+      top: 4px;
+      box-shadow: 0 0 8px var(--primary);
+    }
+
+    .timeline-time {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-bottom: 0.2rem;
+    }
+
+    .timeline-title {
+      font-weight: 600;
+      font-size: 0.85rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .timeline-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* Tabs & Details */
+    .tabs {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 0.5rem;
+    }
+
+    .tab {
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 0.4rem 0.8rem;
+      transition: all 0.3s ease;
+      border-bottom: 2px solid transparent;
+    }
+
+    .tab.active {
+      color: var(--text-main);
+      border-bottom: 2px solid var(--primary);
+      font-weight: 600;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Progress Log console */
+    .console-logs {
+      background: #090d16;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1rem;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.8rem;
+      max-height: 240px;
+      overflow-y: auto;
+      color: #38bdf8;
+    }
+
+    .log-line {
+      margin-bottom: 0.4rem;
+    }
+
+    /* Details styling */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .info-card {
+      background: rgba(15, 23, 42, 0.2);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 1rem;
+    }
+
+    .info-title {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .info-value {
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    .complaint-bar {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 0.5rem;
+    }
+
+    .complaint-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ec4899 0%, #ef4444 100%);
+    }
+
+    /* Simulator Panel Styling */
+    .simulator-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .form-group label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .form-control {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: var(--text-main);
+      padding: 0.6rem 0.8rem;
+      font-family: inherit;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary);
+    }
+
+    textarea.form-control {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    /* Action triggers */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--primary);
+      color: var(--text-main);
+      padding: 0.8rem 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      font-size: 0.85rem;
+      font-weight: 600;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Tabs & recommendation styling */
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 0.6rem 1.2rem;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255,255,255,0.05);
+    }
+    .tab-btn.active-tab {
+      color: var(--text-main);
+      background: rgba(56, 189, 248, 0.15);
+      border-bottom: 2px solid var(--primary);
+    }
+    .tag-bubble {
+      display: inline-block;
+      padding: 0.3rem 0.8rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-right: 0.4rem;
+      margin-bottom: 0.4rem;
+    }
+    .tag-bubble:hover {
+      color: var(--text-main);
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+    .reverify-btn {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: #fff;
+      font-weight: 600;
+      border: none;
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+    }
+    .reverify-btn:hover {
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand-section">
+      <h1>AI SDR Outreach & Research Platform</h1>
+      <p>13-Agent Orchestrator • Live Simulation Console</p>
+    </div>
+  </header>
+
+  <main>
+    <section style="width: 100%; display: flex; flex-direction: column; gap: 2rem;">
+      <!-- LinkedIn CDP Automation Panel -->
+      <div class="dashboard-panel" style="margin-top: 0;">
+        <div class="panel-title">
+          <span>LinkedIn CDP Automation Lead Gen Console</span>
+          <span style="font-size: 0.75rem; color: var(--accent-amber);" id="linkedin-status">Chrome Debugger Port: 9222</span>
+        </div>
+        
+        <div class="info-grid">
+          <div class="info-card" style="grid-column: span 2;">
+            <div class="info-title">Launch Instructions</div>
+            <div class="info-value" style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
+              1. Close Chrome completely.<br>
+              2. Click the auto-launch button below, or launch via terminal:<br>
+              <code>/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222</code><br>
+              3. Log into LinkedIn in that Chrome window.
+              <button class="btn btn-secondary" onclick="autoLaunchChrome()" id="btn-launch-chrome" style="margin-top: 1rem; padding: 0.5rem 1rem; width: auto;">Auto-Launch Debugger Chrome</button>
+            </div>
+          </div>
+          
+          <div class="info-card">
+            <div class="info-title">Search target contacts</div>
+            <div class="simulator-form" style="margin-top: 0.5rem;">
+              <div class="form-group">
+                <label>Company/Brand Name</label>
+                <input type="text" class="form-control" id="lk-company-name" placeholder="e.g. Borosil">
+              </div>
+              <button class="btn" onclick="runLinkedInSearch()" id="btn-lk-search">Search LinkedIn via CDP</button>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <div class="info-title">Scrape Company Profile</div>
+            <div class="simulator-form" style="margin-top: 0.5rem;">
+              <div class="form-group">
+                <label>LinkedIn Company URL</label>
+                <input type="text" class="form-control" id="lk-company-url" placeholder="https://linkedin.com/company/borosil-ltd/">
+              </div>
+              <button class="btn btn-secondary" onclick="runLinkedInCompanyScrape()" id="btn-lk-company" style="width: 100%;">Scrape Size</button>
+              <div style="font-size: 0.75rem; margin-top: 0.5rem; color: var(--text-muted); display: none;" id="lk-company-result">
+                Employees: <span id="lk-company-employees" style="color: var(--text-main); font-weight: 600;">-</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="info-card">
+            <div class="info-title">Scrape Mutual Connections</div>
+            <div class="simulator-form" style="margin-top: 0.5rem;">
+              <div class="form-group">
+                <label>LinkedIn Profile URL</label>
+                <input type="text" class="form-control" id="lk-profile-url" placeholder="https://linkedin.com/in/username/">
+              </div>
+              <button class="btn btn-secondary" onclick="runLinkedInMutualScrape()" id="btn-lk-mutual" style="width: 100%;">Scrape Mutuals</button>
+              <div style="font-size: 0.75rem; margin-top: 0.5rem; color: var(--text-muted); display: none;" id="lk-mutual-result">
+                Mutual Connections: <span id="lk-mutual-count" style="color: var(--accent-green); font-weight: 600;">0</span>
+              </div>
+            </div>
+          <div class="info-card">
+            <div class="info-title">Scrape LinkedIn Feed</div>
+            <div class="simulator-form" style="margin-top: 0.5rem;">
+              <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.8rem;">
+                Fetches current networking updates directly from your homepage feed.
+              </p>
+              <button class="btn btn-secondary" onclick="runLinkedInFeedScrape()" id="btn-lk-feed" style="width: 100%;">Scrape Live Feed</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.5rem; display: none;" id="lk-results-section">
+          <div class="info-title" style="margin-bottom: 0.8rem;">Discovered Profiles</div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Designation</th>
+                  <th>Profile URL</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="lk-results-body">
+                <!-- Programmatically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- LinkedIn Feed Results Section -->
+        <div style="margin-top: 1.5rem; display: none;" id="lk-feed-section">
+          <div class="info-title" style="margin-bottom: 0.8rem;">Live Feed Updates (Scraped from Host)</div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Author</th>
+                  <th>Headline</th>
+                  <th>Post Content Preview</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="lk-feed-body">
+                <!-- Programmatically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- WhatsApp Group Discovery Panel -->
+      <div class="dashboard-panel" style="margin-top: 2rem;">
+        <div class="panel-title">
+          <span>WhatsApp Group Link Discovery Console</span>
+          <span style="font-size: 0.75rem; color: var(--accent-green);" id="whatsapp-status">Ready to Scrape</span>
+        </div>
+
+        <!-- Tabs Nav -->
+        <div style="display: flex; gap: 0.5rem; border-bottom: 1px solid var(--card-border); margin-bottom: 1.5rem; padding-bottom: 0.5rem;">
+          <button id="tab-wa-discover" class="tab-btn active-tab" onclick="switchWhatsAppTab('discover')">Group Discovery Console</button>
+          <button id="tab-wa-database" class="tab-btn" onclick="switchWhatsAppTab('database')">Saved Group Directory DB</button>
+        </div>
+        
+        <!-- Tab content 1: Group Discovery -->
+        <div id="pane-wa-discover">
+          <div class="info-grid">
+            <div class="info-card" style="grid-column: span 2;">
+              <div class="info-title">Search Demographics & Keywords</div>
+              <div class="simulator-form" style="margin-top: 0.5rem; display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+                <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                  <label>Niche / Keyword</label>
+                  <input type="text" class="form-control" id="wa-niche" placeholder="e.g. D2C Brands, eCommerce Sellers, Resellers" oninput="getNicheRecommendations()">
+                </div>
+                <div class="form-group" style="flex: 1; min-width: 150px; margin-bottom: 0;">
+                  <label>Country / Territory</label>
+                  <input type="text" class="form-control" id="wa-country" placeholder="e.g. India, USA, UK">
+                </div>
+                <button class="btn" onclick="discoverWhatsAppGroups()" id="btn-wa-discover" style="height: 42px;">Discover Groups</button>
+              </div>
+              
+              <!-- Niche Recommendations -->
+              <div id="wa-suggestions-container" style="margin-top: 1rem; display: none;">
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.4rem;">Similar Niche Suggestions:</div>
+                <div id="wa-suggestions-bubbles"></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top: 1.5rem; display: none;" id="wa-results-section">
+            <div class="info-title" style="margin-bottom: 0.8rem;" id="wa-results-title">Discovered Groups</div>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Group Title</th>
+                    <th>WhatsApp Invite Link</th>
+                    <th>Source / Context</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="wa-results-body">
+                  <!-- Programmatically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab content 2: Saved Database Directory -->
+        <div id="pane-wa-database" style="display: none;">
+          <div class="info-grid">
+            <div class="info-card" style="grid-column: span 2;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; flex-wrap: wrap; gap: 0.5rem;">
+                <div class="info-title" style="margin-bottom: 0;">Filter Saved WhatsApp Groups</div>
+                <button class="reverify-btn" onclick="runManualReverification()" id="btn-wa-reverify">Run Daily Link Verification Job</button>
+              </div>
+              
+              <div class="simulator-form" style="margin-top: 0.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; align-items: flex-end;">
+                <div class="form-group">
+                  <label>Search Niche / Tags</label>
+                  <input type="text" class="form-control" id="db-wa-niche" placeholder="e.g. amazon, crypto">
+                </div>
+                <div class="form-group">
+                  <label>Country</label>
+                  <input type="text" class="form-control" id="db-wa-country" placeholder="e.g. India, United States">
+                </div>
+                <div class="form-group">
+                  <label>Language</label>
+                  <input type="text" class="form-control" id="db-wa-language" placeholder="e.g. English, Spanish">
+                </div>
+                <div class="form-group" style="flex-direction: row; align-items: center; gap: 0.5rem; height: 38px; margin-bottom: 4px;">
+                  <input type="checkbox" id="db-wa-verified" checked style="width: 18px; height: 18px; cursor: pointer;">
+                  <label for="db-wa-verified" style="cursor: pointer; user-select: none; font-size: 0.8rem; color: var(--text-muted);">Verified Links Only</label>
+                </div>
+                <div class="form-group">
+                  <label>Sort By</label>
+                  <select class="form-control" id="db-wa-sort" style="height: 38px;">
+                    <option value="newest">Recently Added</option>
+                    <option value="checked">Last Verified</option>
+                  </select>
+                </div>
+                <button class="btn" onclick="searchWhatsAppDatabase()" id="btn-wa-db-search" style="height: 42px;">Apply Filters</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top: 1.5rem;" id="wa-db-section">
+            <div class="info-title" style="margin-bottom: 0.8rem;">Saved Directory Database</div>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Group Title</th>
+                    <th>Category</th>
+                    <th>Country / Language</th>
+                    <th>Invite Link</th>
+                    <th>Status</th>
+                    <th>Last Verified</th>
+                  </tr>
+                </thead>
+                <tbody id="wa-db-body">
+                  <!-- Programmatically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast-message">Notification message here</div>
+
+  <script>
+    // Initialize Page
+    window.addEventListener('DOMContentLoaded', () => {
+      console.log('Page initialized successfully.');
+    });
+
+    // Toast Notification Utility
+    function showToast(msg) {
+      const toast = document.getElementById('toast-message');
+      toast.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+    async function runLinkedInSearch() {
+      const companyName = document.getElementById('lk-company-name').value.trim();
+      if (!companyName) {
+        showToast('Please enter a Company/Brand Name.');
+        return;
+      }
+
+      const btn = document.getElementById('btn-lk-search');
+      btn.innerText = 'Searching via CDP...';
+      btn.disabled = true;
+      showToast(`Initiating LinkedIn search for "${companyName}"...`);
+
+      try {
+        const response = await fetch('/linkedin/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ companyName })
+        });
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          const profiles = data.profiles || [];
+          document.getElementById('lk-results-section').style.display = 'block';
+          
+          const tbody = document.getElementById('lk-results-body');
+          if (profiles.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">No priority profiles found.</td></tr>`;
+          } else {
+            tbody.innerHTML = profiles.map((p, idx) => `
+              <tr>
+                <td style="font-weight:600; color:var(--primary);">${p.name}</td>
+                <td>${p.designation}</td>
+                <td><a href="${p.profileUrl}" target="_blank" style="color:var(--text-muted); text-decoration:none;">Profile Link 🔗</a></td>
+                <td>
+                  <button class="btn" style="padding:0.4rem 0.8rem; font-size:0.75rem;" onclick="sendLinkedInInvite(this, '${p.profileUrl}', '${p.name}')">
+                    Connect
+                  </button>
+                </td>
+              </tr>
+            `).join('');
+          }
+          showToast(`Found ${profiles.length} profile(s).`);
+        } else {
+          showToast(data.error || 'Failed to search. Is Chrome CDP port 9222 active?');
+        }
+      } catch (err) {
+        showToast('Error communicating with backend.');
+      } finally {
+        btn.innerText = 'Search LinkedIn via CDP';
+        btn.disabled = false;
+      }
+    }
+
+    // Automate sending a connection request to the profile link
+    async function sendLinkedInInvite(btn, profileUrl, name) {
+      btn.innerText = 'Connecting...';
+      btn.disabled = true;
+      
+      const note = `Hi ${name.split(' ')[0]}, noticed your products active on marketplaces. Would love to connect regarding eCommerce review strategies.`;
+
+      showToast(`Connecting via CDP and typing message note to ${name}...`);
+
+      try {
+        const response = await fetch('/linkedin/connect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ profileUrl, note })
+        });
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          btn.innerText = 'Connected';
+          btn.style.background = 'var(--accent-green)';
+          showToast(`LinkedIn connection request sent to ${name}!`);
+        } else {
+          btn.innerText = 'Connect';
+          btn.disabled = false;
+          showToast(data.message || 'Automation failed. Check Chrome debugger console.');
+        }
+      } catch (err) {
+        showToast('Network error.');
+        btn.innerText = 'Connect';
+        btn.disabled = false;
+      }
+    }
+
+    // Scrape LinkedIn Company Profile size via Chrome CDP Session
+    async function runLinkedInCompanyScrape() {
+      const companyUrl = document.getElementById('lk-company-url').value.trim();
+      if (!companyUrl) {
+        showToast('Please enter a LinkedIn Company URL.');
+        return;
+      }
+
+      const btn = document.getElementById('btn-lk-company');
+      btn.innerText = 'Scraping Size...';
+      btn.disabled = true;
+      showToast('Navigating and scraping company headcount details...');
+
+      try {
+        const response = await fetch('/linkedin/company', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ companyUrl })
+        });
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          document.getElementById('lk-company-result').style.display = 'block';
+          document.getElementById('lk-company-employees').innerText = `Headcount: ${data.employeeCount || 'Unknown'} | Industry: ${data.industry || 'Other'} | Headquarters: ${data.headquarters || 'Unknown'}`;
+          showToast('Company size details scraped successfully.');
+        } else {
+          showToast(data.error || 'Failed to scrape. Verify debugging port 9222 is active.');
+        }
+      } catch (err) {
+        showToast('Error communicating with backend.');
+      } finally {
+        btn.innerText = 'Scrape Size';
+        btn.disabled = false;
+      }
+    }
+
+    // Scrape LinkedIn Mutual Connections Count via Chrome CDP Session
+    async function runLinkedInMutualScrape() {
+      const profileUrl = document.getElementById('lk-profile-url').value.trim();
+      if (!profileUrl) {
+        showToast('Please enter a LinkedIn Profile URL.');
+        return;
+      }
+
+      const btn = document.getElementById('btn-lk-mutual');
+      btn.innerText = 'Scraping Mutuals...';
+      btn.disabled = true;
+      showToast('Navigating and parsing shared connections count...');
+
+      try {
+        const response = await fetch('/linkedin/mutual', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ profileUrl })
+        });
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          document.getElementById('lk-mutual-result').style.display = 'block';
+          document.getElementById('lk-mutual-count').innerText = `${data.mutualCount} mutual connections`;
+          showToast('Mutual connection count scraped successfully.');
+        } else {
+          showToast(data.error || 'Failed to scrape. Verify debugging port 9222 is active.');
+        }
+      } catch (err) {
+        showToast('Error communicating with backend.');
+      } finally {
+        btn.innerText = 'Scrape Mutuals';
+        btn.disabled = false;
+      }
+    }
+
+    // Scrape LinkedIn Home Feed posts via Chrome CDP Session
+    async function runLinkedInFeedScrape() {
+      const btn = document.getElementById('btn-lk-feed');
+      btn.innerText = 'Scraping Feed...';
+      btn.disabled = true;
+      showToast('Navigating to LinkedIn homepage and reading feed updates...');
+
+      try {
+        const response = await fetch('/linkedin/feed', {
+          method: 'POST'
+        });
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          const posts = data.posts || [];
+          document.getElementById('lk-feed-section').style.display = 'block';
+          
+          const tbody = document.getElementById('lk-feed-body');
+          if (posts.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">No updates found in feed.</td></tr>`;
+          } else {
+            tbody.innerHTML = posts.map(p => {
+              const safeText = p.textContent ? p.textContent.substring(0, 120) + '...' : 'No text content.';
+              return `
+                <tr>
+                  <td style="font-weight:600; color:var(--primary);">${p.author}</td>
+                  <td><span style="font-size:0.75rem; color:var(--text-muted);">${p.description || 'N/A'}</span></td>
+                  <td><span style="font-family:monospace; font-size:0.75rem;">"${safeText}"</span></td>
+                  <td>
+                    <button class="btn btn-secondary" style="padding:0.4rem 0.8rem; font-size:0.75rem;" onclick="addFeedLead('${p.author.replace(/'/g, "\\'")}', '${p.description.replace(/'/g, "\\'")}')">
+                      Copy Name
+                    </button>
+                  </td>
+                </tr>
+              `;
+            }).join('');
+          }
+          showToast(`Successfully scraped ${posts.length} feed post(s).`);
+        } else {
+          showToast(data.error || 'Failed to scrape feed. Verify debugging port 9222 is active.');
+        }
+      } catch (err) {
+        showToast('Error communicating with backend.');
+      } finally {
+        btn.innerText = 'Scrape Live Feed';
+        btn.disabled = false;
+      }
+    }
+
+    // Autofill Lead Form from feed prospect
+    function addFeedLead(author, description) {
+      navigator.clipboard.writeText(author);
+      showToast(`Copied prospect "${author}" to clipboard!`);
+    }
+
+    // Auto-launch Google Chrome with remote debugging on port 9222
+    async function autoLaunchChrome() {
+      const btn = document.getElementById('btn-launch-chrome');
+      btn.innerText = 'Launching Chrome...';
+      btn.disabled = true;
+      showToast('Instructing backend to launch Google Chrome...');
+
+      try {
+        const response = await fetch('/chrome/launch', { method: 'POST' });
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          showToast('Chrome opened! Please log in to LinkedIn in the new window.');
+          document.getElementById('linkedin-status').innerText = 'Chrome Debugger Port: 9222 (Active)';
+          document.getElementById('linkedin-status').style.color = 'var(--accent-green)';
+        } else {
+          showToast(data.error || 'Failed to auto-launch. Please run the terminal command.');
+        }
+      } catch (err) {
+        showToast('Error connecting to backend.');
+      } finally {
+        btn.innerText = 'Auto-Launch Debugger Chrome';
+        btn.disabled = false;
+      }
+    }
+
+    // Switch between WhatsApp Group discovery and saved directory tabs
+    function switchWhatsAppTab(tabName) {
+      const tabDiscover = document.getElementById('tab-wa-discover');
+      const tabDatabase = document.getElementById('tab-wa-database');
+      const paneDiscover = document.getElementById('pane-wa-discover');
+      const paneDatabase = document.getElementById('pane-wa-database');
+
+      if (tabName === 'discover') {
+        tabDiscover.classList.add('active-tab');
+        tabDatabase.classList.remove('active-tab');
+        paneDiscover.style.display = 'block';
+        paneDatabase.style.display = 'none';
+      } else {
+        tabDiscover.classList.remove('active-tab');
+        tabDatabase.classList.add('active-tab');
+        paneDiscover.style.display = 'none';
+        paneDatabase.style.display = 'block';
+        // Auto-load database on tab switch
+        searchWhatsAppDatabase();
+      }
+    }
+
+    // Fetches similar niche suggestions from the backend recommendation engine
+    let recommendationTimeout = null;
+    async function getNicheRecommendations() {
+      const niche = document.getElementById('wa-niche').value.trim();
+      const container = document.getElementById('wa-suggestions-container');
+      const bubbles = document.getElementById('wa-suggestions-bubbles');
+
+      if (!niche || niche.length < 3) {
+        container.style.display = 'none';
+        return;
+      }
+
+      // Debounce keyup input to avoid spamming endpoint
+      clearTimeout(recommendationTimeout);
+      recommendationTimeout = setTimeout(async () => {
+        try {
+          const response = await fetch('/whatsapp/similar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ niche })
+          });
+          const data = await response.json();
+          if (data.success && data.recommendations && data.recommendations.length > 0) {
+            container.style.display = 'block';
+            bubbles.innerHTML = data.recommendations.map(rec => `
+              <span class="tag-bubble" onclick="fillNicheInput('${rec}')">${rec}</span>
+            `).join('');
+          } else {
+            container.style.display = 'none';
+          }
+        } catch (err) {
+          console.warn('Error fetching recommendations:', err);
+        }
+      }, 400);
+    }
+
+    function fillNicheInput(nicheName) {
+      document.getElementById('wa-niche').value = nicheName;
+      getNicheRecommendations();
+    }
+
+    // Discover WhatsApp Group Links based on niche and country demographics
+    async function discoverWhatsAppGroups() {
+      const niche = document.getElementById('wa-niche').value.trim();
+      const country = document.getElementById('wa-country').value.trim();
+      const btn = document.getElementById('btn-wa-discover');
+
+      if (!niche || !country) {
+        showToast('Please specify both Niche and Country.');
+        return;
+      }
+
+      btn.innerText = 'Searching...';
+      btn.disabled = true;
+      document.getElementById('whatsapp-status').innerText = 'Scraping Web...';
+      document.getElementById('whatsapp-status').style.color = 'var(--accent-amber)';
+      showToast(`Scraping web index pages for "${niche}" groups in "${country}"...`);
+
+      try {
+        const response = await fetch('/whatsapp/discover', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ niche, country })
+        });
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          const groups = data.groups || [];
+          document.getElementById('wa-results-section').style.display = 'block';
+          document.getElementById('wa-results-title').innerText = `Discovered Groups (${groups.length} found & saved to DB)`;
+          
+          const tbody = document.getElementById('wa-results-body');
+          if (groups.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem;">No WhatsApp group invite links found for these parameters. Try adjusting keywords.</td></tr>`;
+          } else {
+            tbody.innerHTML = groups.map(g => {
+              let displayDesc = g.description;
+              if (displayDesc.length > 150) displayDesc = displayDesc.substring(0, 150) + '...';
+              
+              let hostname = 'Web Index';
+              try {
+                hostname = new URL(g.sourceUrl).hostname;
+              } catch (e) {}
+
+              return `
+                <tr>
+                  <td style="font-weight: 600; color: var(--accent-green);">${g.groupName}</td>
+                  <td>
+                    <a href="${g.groupUrl}" target="_blank" style="color: var(--primary); text-decoration: underline; font-family: monospace; font-size: 0.8rem;">
+                      ${g.groupUrl}
+                    </a>
+                  </td>
+                  <td>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); font-style: italic; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${g.description}">
+                      ${displayDesc}
+                    </div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.2rem;">
+                      Source: <a href="${g.sourceUrl}" target="_blank" style="color: inherit; text-decoration: underline;">${hostname}</a>
+                    </div>
+                  </td>
+                  <td>
+                    <button class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.75rem;" onclick="navigator.clipboard.writeText('${g.groupUrl}'); showToast('Invite link copied!');">
+                      Copy Link
+                    </button>
+                  </td>
+                </tr>
+              `;
+            }).join('');
+          }
+          showToast(`Discovery completed: found & saved ${groups.length} active groups.`);
+          document.getElementById('whatsapp-status').innerText = 'Active';
+          document.getElementById('whatsapp-status').style.color = 'var(--accent-green)';
+        } else {
+          showToast(data.error || 'Failed to search WhatsApp groups.');
+          document.getElementById('whatsapp-status').innerText = 'Ready to Scrape';
+          document.getElementById('whatsapp-status').style.color = 'var(--accent-green)';
+        }
+      } catch (err) {
+        showToast('Error communicating with backend.');
+        document.getElementById('whatsapp-status').innerText = 'Ready to Scrape';
+        document.getElementById('whatsapp-status').style.color = 'var(--accent-green)';
+      } finally {
+        btn.innerText = 'Discover Groups';
+        btn.disabled = false;
+      }
+    }
+
+    // Queries the directory database matching user-applied search filters
+    async function searchWhatsAppDatabase() {
+      const niche = document.getElementById('db-wa-niche').value.trim();
+      const country = document.getElementById('db-wa-country').value.trim();
+      const language = document.getElementById('db-wa-language').value.trim();
+      const verified = document.getElementById('db-wa-verified').checked;
+      const sortBy = document.getElementById('db-wa-sort').value;
+      const btn = document.getElementById('btn-wa-db-search');
+
+      btn.innerText = 'Applying Filters...';
+      btn.disabled = true;
+
+      const payload = {};
+      if (niche) payload.niche = niche;
+      if (country) payload.country = country;
+      if (language) payload.language = language;
+      if (verified) payload.active = true;
+      if (sortBy === 'newest') payload.newest = true;
+
+      try {
+        const response = await fetch('/whatsapp/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          const groups = data.groups || [];
+          const tbody = document.getElementById('wa-db-body');
+          
+          if (groups.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">No matching saved groups found. Change search filters or discover new groups.</td></tr>`;
+          } else {
+            tbody.innerHTML = groups.map(g => {
+              const formattedDate = g.lastChecked ? new Date(g.lastChecked).toLocaleString() : 'Never';
+              const statusBadge = g.active 
+                ? '<span style="background: rgba(16, 185, 129, 0.15); color: var(--accent-green); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">Verified Active</span>'
+                : '<span style="background: rgba(239, 68, 68, 0.15); color: #ef4444; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">Inactive / Expired</span>';
+              
+              return `
+                <tr>
+                  <td style="font-weight: 600; color: var(--text-main);">${g.title}</td>
+                  <td><span style="font-size: 0.75rem; color: var(--accent-amber); font-weight: 600;">${g.category || 'N/A'}</span></td>
+                  <td style="font-size: 0.8rem;">${g.country || 'Global'} / <span style="color: var(--text-muted);">${g.language || 'English'}</span></td>
+                  <td>
+                    <a href="${g.inviteLink}" target="_blank" style="color: var(--primary); text-decoration: underline; font-family: monospace; font-size: 0.8rem;">
+                      ${g.inviteLink}
+                    </a>
+                  </td>
+                  <td>${statusBadge}</td>
+                  <td style="font-size: 0.75rem; color: var(--text-muted);">${formattedDate}</td>
+                </tr>
+              `;
+            }).join('');
+          }
+        } else {
+          showToast(data.error || 'Failed to fetch saved groups directory.');
+        }
+      } catch (err) {
+        showToast('Network error querying database.');
+      } finally {
+        btn.innerText = 'Apply Filters';
+        btn.disabled = false;
+      }
+    }
+
+    // Manually trigger the daily recheck verification job from the UI console
+    async function runManualReverification() {
+      const btn = document.getElementById('btn-wa-reverify');
+      btn.innerText = 'Verifying Links...';
+      btn.disabled = true;
+      showToast('Initiating recheck validation job across all saved active links...');
+
+      try {
+        const response = await fetch('/whatsapp/reverify', {
+          method: 'POST'
+        });
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          const s = data.summary;
+          showToast(`Verification job finished! Checked: ${s.checkedCount}, Active: ${s.stillActiveCount}, Deactivated: ${s.deactivatedCount}`);
+          // Reload directory table
+          searchWhatsAppDatabase();
+        } else {
+          showToast(data.error || 'Failed to complete recheck validation job.');
+        }
+      } catch (err) {
+        showToast('Network error triggering recheck job.');
+      } finally {
+        btn.innerText = 'Run Daily Link Verification Job';
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>

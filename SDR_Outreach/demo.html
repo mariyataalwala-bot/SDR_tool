@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI SDR Agent Pipeline Dashboard - Demo</title>
+  <!-- Modern Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-dark: #0a0f1d;
+      --card-bg: rgba(18, 26, 47, 0.6);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --primary-neon: #00ffaa;
+      --secondary-neon: #00d2ff;
+      --accent-purple: #8a2be2;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --danger: #ff4d6d;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(at 10% 20%, rgba(0, 255, 170, 0.05) 0px, transparent 50%),
+        radial-gradient(at 90% 80%, rgba(0, 210, 255, 0.05) 0px, transparent 50%);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding: 2rem;
+    }
+
+    /* Container */
+    .dashboard-container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* Header styling */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2.5rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 1.5rem;
+    }
+
+    .brand-title h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--primary-neon), var(--secondary-neon));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.3rem;
+    }
+
+    .brand-title p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .demo-controls {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    select, button {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 0.8rem 1.5rem;
+      border-radius: 12px;
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    select:focus, button:focus {
+      outline: none;
+      border-color: var(--primary-neon);
+    }
+
+    button.btn-primary {
+      background: linear-gradient(135deg, var(--primary-neon), var(--secondary-neon));
+      color: #05050d;
+      border: none;
+      box-shadow: 0 4px 20px rgba(0, 255, 170, 0.25);
+    }
+
+    button.btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(0, 255, 170, 0.4);
+    }
+
+    /* Layout Grid */
+    .grid-layout {
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      gap: 2rem;
+    }
+
+    /* Left Panel: 13-Agent Status Pipeline */
+    .agent-pipeline-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 1.5rem;
+      backdrop-filter: blur(12px);
+    }
+
+    .agent-pipeline-card h3 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.25rem;
+      margin-bottom: 1.5rem;
+      border-left: 3px solid var(--primary-neon);
+      padding-left: 0.5rem;
+    }
+
+    .pipeline-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.6rem 0.8rem;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid transparent;
+      transition: all 0.3s;
+    }
+
+    .step-item.active {
+      background: rgba(0, 210, 255, 0.08);
+      border-color: rgba(0, 210, 255, 0.3);
+      transform: translateX(5px);
+    }
+
+    .step-item.completed {
+      background: rgba(0, 255, 170, 0.04);
+      border-color: rgba(0, 255, 170, 0.15);
+    }
+
+    .step-number {
+      width: 28px;
+      height: 28px;
+      border-radius: 50px;
+      background: rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+    }
+
+    .step-item.active .step-number {
+      background: var(--secondary-neon);
+      color: #05050d;
+      box-shadow: 0 0 10px var(--secondary-neon);
+    }
+
+    .step-item.completed .step-number {
+      background: var(--primary-neon);
+      color: #05050d;
+      border-color: var(--primary-neon);
+    }
+
+    .step-name {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .step-item.active .step-name {
+      color: var(--text-main);
+    }
+
+    .step-item.completed .step-name {
+      color: #a7f3d0;
+      text-decoration: line-through;
+      opacity: 0.7;
+    }
+
+    /* Right Panel: Content tabs */
+    .content-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 1rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.5rem;
+    }
+
+    .tab-item {
+      padding: 0.8rem 1.5rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.3s;
+      border-bottom: 2px solid transparent;
+    }
+
+    .tab-item:hover, .tab-item.active {
+      color: var(--primary-neon);
+    }
+
+    .tab-item.active {
+      border-color: var(--primary-neon);
+    }
+
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cards styling */
+    .panel-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      padding: 2rem;
+      backdrop-filter: blur(12px);
+    }
+
+    .panel-card h2 {
+      font-family: 'Outfit', sans-serif;
+      margin-bottom: 1.5rem;
+      font-size: 1.6rem;
+      font-weight: 600;
+    }
+
+    /* Metrics Grid */
+    .metrics-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .mini-metric-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.25rem;
+      text-align: center;
+    }
+
+    .mini-metric-card p {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .mini-metric-card h4 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.8rem;
+      color: var(--secondary-neon);
+    }
+
+    /* Circular score */
+    .scoring-container {
+      display: flex;
+      align-items: center;
+      gap: 3rem;
+      margin-top: 1rem;
+    }
+
+    .score-circle {
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      background: conic-gradient(var(--primary-neon) var(--score-angle, 0deg), rgba(255,255,255,0.05) 0deg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      box-shadow: 0 0 20px rgba(0, 255, 170, 0.1);
+    }
+
+    .score-circle::before {
+      content: '';
+      position: absolute;
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: #0d1527;
+    }
+
+    .score-text {
+      position: relative;
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .score-text span {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+    }
+
+    .reasons-list {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .reason-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.95rem;
+    }
+
+    .reason-icon {
+      color: var(--primary-neon);
+      font-weight: 700;
+    }
+
+    /* Contacts List */
+    .contacts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .contact-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 1.5rem;
+      transition: all 0.3s;
+      position: relative;
+    }
+
+    .contact-card:hover {
+      border-color: var(--secondary-neon);
+      transform: translateY(-3px);
+    }
+
+    .contact-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+
+    .contact-info h4 {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .contact-info p {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .badge-confidence {
+      background: rgba(0, 255, 170, 0.15);
+      border: 1px solid var(--primary-neon);
+      color: var(--primary-neon);
+      padding: 0.3rem 0.6rem;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .contact-details {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      margin-top: 1rem;
+      border-top: 1px solid var(--border-color);
+      padding-top: 1rem;
+    }
+
+    .detail-item {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .detail-label {
+      color: var(--text-muted);
+    }
+
+    /* Review chart styling */
+    .complaints-chart {
+      margin-top: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .chart-bar-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .bar-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+    }
+
+    .bar-container {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--secondary-neon), var(--primary-neon));
+      width: 0;
+      transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Timeline styling */
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      position: relative;
+      padding-left: 2rem;
+      margin-top: 1rem;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 7px;
+      top: 5px;
+      bottom: 5px;
+      width: 2px;
+      background: var(--border-color);
+    }
+
+    .timeline-event {
+      position: relative;
+    }
+
+    .timeline-node {
+      position: absolute;
+      left: -29px;
+      top: 3px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--bg-dark);
+      border: 3px solid var(--secondary-neon);
+      box-shadow: 0 0 8px var(--secondary-neon);
+    }
+
+    .event-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 1rem 1.25rem;
+    }
+
+    .event-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.3rem;
+    }
+
+    .event-title {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--secondary-neon);
+    }
+
+    .event-time {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .event-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* Research Profile layout */
+    .profile-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      max-height: 600px;
+      overflow-y: auto;
+      padding-right: 0.5rem;
+    }
+
+    .profile-section {
+      background: rgba(255, 255, 255, 0.01);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.25rem;
+    }
+
+    .profile-section h4 {
+      font-family: 'Outfit', sans-serif;
+      color: var(--primary-neon);
+      margin-bottom: 0.6rem;
+      font-size: 1.05rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .profile-section p {
+      font-size: 0.95rem;
+      color: var(--text-main);
+      line-height: 1.6;
+    }
+
+    /* Simulation Status Message */
+    .sim-status {
+      text-align: center;
+      padding: 1rem;
+      background: rgba(0, 210, 255, 0.06);
+      border: 1px dashed var(--secondary-neon);
+      border-radius: 12px;
+      margin-bottom: 2rem;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="dashboard-container">
+    <header>
+      <div class="brand-title">
+        <h1>AI SDR Operations Console</h1>
+        <p>13-Agent Autonomous Outreach & Pipeline Intelligence Ledger</p>
+      </div>
+      <div class="demo-controls">
+        <select id="brand-select">
+          <option value="solara">SOLARA (Drinkware)</option>
+          <option value="xyzfoods">XYZ Foods (FMCG)</option>
+        </select>
+        <button class="btn-primary" id="run-pipeline-btn">Run SDR Analyzer</button>
+      </div>
+    </header>
+
+    <div class="grid-layout">
+      <!-- Left Panel: Pipeline Agent Map -->
+      <aside class="agent-pipeline-card">
+        <h3>Agent Execution Path</h3>
+        <div class="pipeline-steps" id="pipeline-steps-container">
+          <div class="step-item" id="agent-1"><div class="step-number">1</div><div class="step-name">Lead Import Agent</div></div>
+          <div class="step-item" id="agent-2"><div class="step-number">2</div><div class="step-name">Research Agent</div></div>
+          <div class="step-item" id="agent-3"><div class="step-number">3</div><div class="step-name">Marketplace Agent</div></div>
+          <div class="step-item" id="agent-4"><div class="step-number">4</div><div class="step-name">Review Intelligence Agent</div></div>
+          <div class="step-item" id="agent-5"><div class="step-number">5</div><div class="step-name">Lead Scoring Agent</div></div>
+          <div class="step-item" id="agent-6"><div class="step-number">6</div><div class="step-name">Contact Discovery Agent</div></div>
+          <div class="step-item" id="agent-7"><div class="step-number">7</div><div class="step-name">Verification Agent</div></div>
+          <div class="step-item" id="agent-8"><div class="step-number">8</div><div class="step-name">Personalization Agent</div></div>
+          <div class="step-item" id="agent-9"><div class="step-number">9</div><div class="step-name">Outreach Agent</div></div>
+          <div class="step-item" id="agent-10"><div class="step-number">10</div><div class="step-name">Conversation Agent</div></div>
+          <div class="step-item" id="agent-11"><div class="step-number">11</div><div class="step-name">Meeting Agent</div></div>
+          <div class="step-item" id="agent-12"><div class="step-number">12</div><div class="step-name">CRM Agent</div></div>
+          <div class="step-item" id="agent-13"><div class="step-number">13</div><div class="step-name">Analytics Agent</div></div>
+        </div>
+      </aside>
+
+      <!-- Right Panel: Data tabs -->
+      <main class="content-panel">
+        <div class="sim-status" id="simulation-status">
+          Select a brand and click "Run SDR Analyzer" to simulate the event-driven 13-agent process.
+        </div>
+
+        <div class="tabs" id="tabs-bar" style="display: none;">
+          <div class="tab-item active" onclick="switchTab('reputation')">Reputation Diagnostic</div>
+          <div class="tab-item" onclick="switchTab('scoring')">Lead Qualification</div>
+          <div class="tab-item" onclick="switchTab('contacts')">Target Contacts</div>
+          <div class="tab-item" onclick="switchTab('profile')">AI Research Profile</div>
+          <div class="tab-item" onclick="switchTab('audit')">CRM Event Ledger</div>
+        </div>
+
+        <!-- Tab contents -->
+        <div id="reputation-tab" class="tab-content">
+          <div class="panel-card">
+            <h2>Marketplace Footprint & Sentiment Analysis</h2>
+            
+            <div class="metrics-summary-grid" id="reputation-metrics">
+              <!-- Dynamically populated -->
+            </div>
+
+            <h3>Top Customer Complaints Analysis</h3>
+            <div class="complaints-chart" id="complaints-chart-container">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
+        <div id="scoring-tab" class="tab-content">
+          <div class="panel-card">
+            <h2>Lead Scoring & Qualification</h2>
+            <div class="scoring-container">
+              <div class="score-circle" id="score-circle-elem">
+                <div class="score-text" id="score-val">0<span>/100</span></div>
+              </div>
+              <div class="reasons-list" id="score-reasons-container">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="contacts-tab" class="tab-content">
+          <div class="panel-card">
+            <h2>Discovered & Verified Targets</h2>
+            <div class="contacts-grid" id="contacts-grid-container">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
+        <div id="profile-tab" class="tab-content">
+          <div class="panel-card">
+            <h2>Company Research Profile (AI Synthesized)</h2>
+            <div class="profile-layout" id="profile-layout-container">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
+        <div id="audit-tab" class="tab-content">
+          <div class="panel-card">
+            <h2>CRM Event Audit Ledger</h2>
+            <div class="timeline" id="timeline-container">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const brands = {
+      solara: {
+        name: "SOLARA",
+        website: "solara.com",
+        category: "Drinkware",
+        marketplaces: [
+          { name: "Amazon", rating: 4.1, reviews: 12000, skus: 45, sellers: ["SOLARA Retail", "Appario"] },
+          { name: "Blinkit", rating: 4.3, reviews: 450, skus: 8, sellers: ["Solara Quick-Comm Store"] }
+        ],
+        complaints: [
+          { complaint: "Late Delivery", percentage: 42 },
+          { complaint: "Broken Packaging", percentage: 27 },
+          { complaint: "Poor Customer Support", percentage: 18 },
+          { complaint: "Wrong Product", percentage: 13 }
+        ],
+        score: 91,
+        reasons: [
+          "Selling on 2 marketplaces (+10)",
+          "High review volume representing high market scale (+15)",
+          "High share of negative reviews/complaints in listings (+25)",
+          "Poor review response rate with customer feedback left unanswered (+20)",
+          "Strong marketplace expansion and growth signals (+10)",
+          "Hiring activity in customer support (+10)"
+        ],
+        contacts: [
+          { name: "Amit Sharma", title: "Founder & CEO", email: "amit.sharma@solara.com", phone: "+91 98765 43210", sources: "Apollo, Hunter, Crunchbase", confidence: 100 },
+          { name: "Neha Patel", title: "Head of eCommerce", email: "neha.patel@solara.com", phone: "+91 87654 32109", sources: "Apollo, Snov", confidence: 96 },
+          { name: "Rahul Verma", title: "Brand Reputation Manager", email: "rahul.verma@solara.com", phone: "+91 76543 21098", sources: "RocketReach, Hunter", confidence: 96 }
+        ],
+        profile: {
+          overview: "SOLARA is an premium e-commerce drinkware manufacturer focused on creating vacuum-insulated steel bottles, smart flasks, and utility kitchen containers.",
+          products: "Vacuum-insulated bottles (0.5L - 1.5L), smart leakproof flasks, and modular food containers. Pricing tier sits at the mid-to-high premium segment.",
+          presence: "Aggressively positioned on Amazon India and recently expanded into Blinkit quick-commerce stores.",
+          painPoints: "High frequency of product damage during transit, delayed quick-commerce shipping, and lack of product-instruction support.",
+          reviewAnalysis: "Amazon store shows an average rating of 4.1. Large gaps observed in Q&A answering and review replies, with 70% of negative reviews left completely unanswered.",
+          competitors: "Milton, Cello, Borosil, and Tupperware.",
+          whyReview: "Review optimization on Amazon will recover lost buy-box positions and restore the brand reputation drop. Automated review responding will increase ratings from 4.1 to 4.4.",
+          salesAngle: "Pitch Amit Sharma focusing on the 42% Late Delivery complaints on Amazon. Propose our review reply workflow to automatically handle transit delivery feedback."
+        }
+      },
+      xyzfoods: {
+        name: "XYZ Foods",
+        website: "xyzfoods.in",
+        category: "FMCG / Snacks",
+        marketplaces: [
+          { name: "Amazon", rating: 4.4, reviews: 2300, skus: 15, sellers: ["XYZ Foods Store"] },
+          { name: "Flipkart", rating: 4.0, reviews: 1400, skus: 12, sellers: ["Retailers Hub"] }
+        ],
+        complaints: [
+          { complaint: "Stale Products", percentage: 50 },
+          { complaint: "Late Delivery", percentage: 20 },
+          { complaint: "Wrong Flavour", percentage: 18 },
+          { complaint: "Poor Package seal", percentage: 12 }
+        ],
+        score: 75,
+        reasons: [
+          "Selling on 2 marketplaces (+10)",
+          "Moderate review volume (+10)",
+          "High stale food complaints (+25)",
+          "Unresolved customer reviews on Flipkart (+20)",
+          "Hiring activity in logistics operations (+10)"
+        ],
+        contacts: [
+          { name: "Vikram Malhotra", title: "Co-Founder", email: "vikram.m@xyzfoods.in", phone: "+91 99887 76655", sources: "Apollo, Hunter", confidence: 96 },
+          { name: "Pooja Roy", title: "eCommerce Operations Lead", email: "pooja.roy@xyzfoods.in", phone: "+91 88776 65544", sources: "Snov, Apollo", confidence: 95 }
+        ],
+        profile: {
+          overview: "XYZ Foods is a growing consumer packaged goods manufacturer specializing in healthy millet-based snacks, granola bars, and protein mixtures.",
+          products: "Roasted millets, high-protein energy bars, sugar-free trail mixes. Target audience is health-conscious urban professionals.",
+          presence: "Present on Amazon and Flipkart. Scaling operations to expand to Blinkit/Instamart.",
+          painPoints: "Frequent complaints about stale texture or lost crispness, wrong snack flavors shipped, and package sealing issues.",
+          reviewAnalysis: "Flipkart rating stands at 4.0/5.0. Nearly half of recent negative reviews mention freshness/staleness, indicating storage issues.",
+          competitors: "The Whole Truth, Yoga Bar, True Elements.",
+          whyReview: "Solving sealing feedback and resolving buyer complaints on Flipkart is critical to protect their listing conversion rate.",
+          salesAngle: "Pitch Vikram Malhotra highlighting that stale snack complaints make up 50% of negative reviews, representing an immediate threat to grocery sales."
+        }
+      }
+    };
+
+    // Load actual leads from SQLite database on window load
+    window.addEventListener("load", loadDatabaseLeads);
+
+    async function loadDatabaseLeads() {
+      try {
+        const response = await fetch('/api/leads');
+        if (!response.ok) return;
+        const dbLeads = await response.json();
+        
+        if (dbLeads && dbLeads.length > 0) {
+          const select = document.getElementById("brand-select");
+          
+          dbLeads.forEach(lead => {
+            const optionId = `db-lead-${lead.id}`;
+            if (document.getElementById(optionId)) return;
+
+            const opt = document.createElement("option");
+            opt.value = optionId;
+            opt.id = optionId;
+            opt.textContent = `${lead.brandName} (${lead.website} - LIVE)`;
+            select.appendChild(opt);
+
+            // Structure data mapping
+            brands[optionId] = {
+              name: lead.brandName,
+              website: lead.website,
+              category: lead.category,
+              marketplaces: lead.marketplaces ? lead.marketplaces.map(m => ({
+                name: m.marketplace,
+                rating: m.avgRating || 0,
+                reviews: m.reviewCount || 0,
+                skus: m.skuCount || 0,
+                sellers: m.sellerNames || []
+              })) : [],
+              complaints: lead.reviews && lead.reviews.length > 0 && lead.reviews[0].topComplaints ? lead.reviews[0].topComplaints : [
+                { complaint: "Late Delivery", percentage: 42 },
+                { complaint: "Broken Packaging", percentage: 27 },
+                { complaint: "Product Quality", percentage: 31 }
+              ],
+              score: lead.opportunityScore ? lead.opportunityScore.totalScore : 65,
+              reasons: lead.opportunityScore ? lead.opportunityScore.reasons : ["Analyzed brand store and identified review response gaps"],
+              contacts: lead.contacts ? lead.contacts.map(c => ({
+                name: c.name || "N/A",
+                title: c.designation || "N/A",
+                email: c.email || "N/A",
+                phone: c.phone || "N/A",
+                sources: c.sources ? c.sources.join(", ") : "Search Scraper",
+                confidence: c.confidenceScore
+              })) : [],
+              profile: {
+                overview: lead.researchProfile ? lead.researchProfile.companyOverview : "Profile overview compiled.",
+                products: lead.researchProfile ? lead.researchProfile.products : "N/A",
+                presence: lead.researchProfile ? lead.researchProfile.marketplacePresence : "N/A",
+                painPoints: lead.researchProfile ? lead.researchProfile.customerPainPoints : "N/A",
+                reviewAnalysis: lead.researchProfile ? lead.researchProfile.reviewAnalysis : "N/A",
+                competitors: lead.researchProfile ? lead.researchProfile.competitors : "N/A",
+                whyReview: lead.researchProfile ? lead.researchProfile.whyNeedReviewManagement : "N/A",
+                salesAngle: lead.researchProfile ? lead.researchProfile.personalizedSalesAngle : "N/A"
+              },
+              crmEvents: lead.crmEvents ? lead.crmEvents.map(e => ({
+                type: e.eventType,
+                desc: e.metadataJson ? JSON.stringify(e.metadataJson) : "Event logged in crm audit trail.",
+                time: new Date(e.timestamp).toLocaleTimeString()
+              })) : []
+            };
+          });
+        }
+      } catch (err) {
+        console.error("Error loading live database leads:", err);
+      }
+    }
+
+    document.getElementById("run-pipeline-btn").addEventListener("click", runDemo);
+
+    function switchTab(tabId) {
+      document.querySelectorAll(".tab-item").forEach(item => item.classList.remove("active"));
+      document.querySelectorAll(".tab-content").forEach(content => content.classList.remove("active"));
+      
+      const tabElements = {
+        reputation: "reputation-tab",
+        scoring: "scoring-tab",
+        contacts: "contacts-tab",
+        profile: "profile-tab",
+        audit: "audit-tab"
+      };
+
+      const tabHeader = Array.from(document.querySelectorAll(".tab-item")).find(item => item.textContent.toLowerCase().includes(tabId.slice(0, 4)));
+      if (tabHeader) tabHeader.classList.add("active");
+
+      document.getElementById(tabElements[tabId]).classList.add("active");
+    }
+
+    async function runDemo() {
+      const selectedKey = document.getElementById("brand-select").value;
+      const data = brands[selectedKey];
+
+      document.getElementById("tabs-bar").style.display = "none";
+      document.querySelectorAll(".step-item").forEach(item => {
+        item.classList.remove("active", "completed");
+      });
+      document.querySelectorAll(".tab-content").forEach(content => content.classList.remove("active"));
+
+      const steps = [
+        { id: "agent-1", log: "Lead Import Agent: Ingesting brand record...", time: 300 },
+        { id: "agent-2", log: "Research Agent: Crawling website domain...", time: 350 },
+        { id: "agent-3", log: "Marketplace Agent: Mapping e-commerce listings...", time: 400 },
+        { id: "agent-4", log: "Review Intelligence Agent: Collecting customer reviews...", time: 400 },
+        { id: "agent-5", log: "Lead Scoring Agent: Computing Opportunity Score...", time: 300 },
+        { id: "agent-6", log: "Contact Discovery Agent: Querying registers...", time: 350 },
+        { id: "agent-7", log: "Verification Agent: SMTP & co-confirmation check...", time: 300 },
+        { id: "agent-8", log: "Personalization Agent: Drafting outreach hooks...", time: 250 },
+        { id: "agent-9", log: "Outreach Agent: Preparing connection workflows...", time: 200 },
+        { id: "agent-10", log: "Conversation Agent: Configuring reply hooks...", time: 200 },
+        { id: "agent-11", log: "Meeting Agent: Verifying Meet calendar slots...", time: 150 },
+        { id: "agent-12", log: "CRM Agent: Logging events to audit ledger...", time: 150 },
+        { id: "agent-13", log: "Analytics Agent: Computing operational metrics...", time: 150 }
+      ];
+
+      for (const step of steps) {
+        document.getElementById("simulation-status").innerHTML = `<strong>Running:</strong> ${step.log}`;
+        const elem = document.getElementById(step.id);
+        elem.classList.add("active");
+        await new Promise(r => setTimeout(r, step.time));
+        elem.classList.remove("active");
+        elem.classList.add("completed");
+      }
+
+      document.getElementById("simulation-status").innerHTML = `🎉 <strong>Pipeline analysis successful!</strong> Data models initialized and logged.`;
+      document.getElementById("tabs-bar").style.display = "flex";
+      
+      populateData(data);
+      switchTab("reputation");
+    }
+
+    function populateData(data) {
+      const metricsContainer = document.getElementById("reputation-metrics");
+      metricsContainer.innerHTML = data.marketplaces.map(m => `
+        <div class="mini-metric-card">
+          <p>${m.name} Presence</p>
+          <h4>${m.rating}/5.0</h4>
+          <span style="font-size:0.8rem;color:var(--text-muted)">${m.reviews.toLocaleString()} reviews</span>
+        </div>
+      `).join("") + `
+        <div class="mini-metric-card">
+          <p>Total Products (SKUs)</p>
+          <h4>${data.marketplaces.reduce((sum, m) => sum + m.skus, 0)} Items</h4>
+        </div>
+      `;
+
+      const chartContainer = document.getElementById("complaints-chart-container");
+      chartContainer.innerHTML = data.complaints.map(c => `
+        <div class="chart-bar-item">
+          <div class="bar-header">
+            <span>${c.complaint}</span>
+            <span>${c.percentage}%</span>
+          </div>
+          <div class="bar-container">
+            <div class="bar-fill" style="width: ${c.percentage}%"></div>
+          </div>
+        </div>
+      `).join("");
+
+      document.getElementById("score-val").innerHTML = `${data.score}<span>/100</span>`;
+      const scoreAngle = (data.score / 100) * 360;
+      document.getElementById("score-circle-elem").style.setProperty("--score-angle", `${scoreAngle}deg`);
+
+      const reasonsContainer = document.getElementById("score-reasons-container");
+      reasonsContainer.innerHTML = data.reasons.map(r => `
+        <div class="reason-item">
+          <span class="reason-icon">✓</span>
+          <span>${r}</span>
+        </div>
+      `).join("");
+
+      const contactsContainer = document.getElementById("contacts-grid-container");
+      contactsContainer.innerHTML = data.contacts.map(c => `
+        <div class="contact-card">
+          <div class="contact-header">
+            <div class="contact-info">
+              <h4>${c.name}</h4>
+              <p>${c.title}</p>
+            </div>
+            <span class="badge-confidence">${c.confidence}% Conf.</span>
+          </div>
+          <div class="contact-details">
+            <div class="detail-item">
+              <span class="detail-label">Email:</span>
+              <span>${c.email}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Phone:</span>
+              <span>${c.phone}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Confirmed via:</span>
+              <span style="color:var(--secondary-neon)">${c.sources}</span>
+            </div>
+          </div>
+        </div>
+      `).join("");
+
+      const profileContainer = document.getElementById("profile-layout-container");
+      profileContainer.innerHTML = `
+        <div class="profile-section">
+          <h4>1. Company Overview</h4>
+          <p>${data.profile.overview}</p>
+        </div>
+        <div class="profile-section">
+          <h4>2. Products & Pricing</h4>
+          <p>${data.profile.products}</p>
+        </div>
+        <div class="profile-section">
+          <h4>3. Marketplace Footprint</h4>
+          <p>${data.profile.presence}</p>
+        </div>
+        <div class="profile-section">
+          <h4>4. Customer Pain Points</h4>
+          <p>${data.profile.painPoints}</p>
+        </div>
+        <div class="profile-section">
+          <h4>5. Reputation & Review Diagnostics</h4>
+          <p>${data.profile.reviewAnalysis}</p>
+        </div>
+        <div class="profile-section">
+          <h4>6. Competitors</h4>
+          <p>${data.profile.competitors}</p>
+        </div>
+        <div class="profile-section">
+          <h4>7. Why They Need Review Management</h4>
+          <p>${data.profile.whyReview}</p>
+        </div>
+        <div class="profile-section">
+          <h4>8. Personalized Sales Angle</h4>
+          <p>${data.profile.salesAngle}</p>
+        </div>
+      `;
+
+      const timelineContainer = document.getElementById("timeline-container");
+      
+      if (data.crmEvents && data.crmEvents.length > 0) {
+        timelineContainer.innerHTML = data.crmEvents.map(e => `
+          <div class="timeline-event">
+            <div class="timeline-node"></div>
+            <div class="event-card">
+              <div class="event-header">
+                <span class="event-title">${e.type}</span>
+                <span class="event-time">${e.time}</span>
+              </div>
+              <p class="event-desc">${e.desc}</p>
+            </div>
+          </div>
+        `).join("");
+      } else {
+        const timestamp = new Date().toLocaleTimeString();
+        timelineContainer.innerHTML = `
+          <div class="timeline-event">
+            <div class="timeline-node"></div>
+            <div class="event-card">
+              <div class="event-header">
+                <span class="event-title">LEAD_IMPORTED</span>
+                <span class="event-time">${timestamp}</span>
+              </div>
+              <p class="event-desc">Raw details parsed and staged in leads table. brand_name: ${data.name}</p>
+            </div>
+          </div>
+          <div class="timeline-event">
+            <div class="timeline-node"></div>
+            <div class="event-card">
+              <div class="event-header">
+                <span class="event-title">RESEARCH_COMPLETED</span>
+                <span class="event-time">${timestamp}</span>
+              </div>
+              <p class="event-desc">Website signals analyzed. Hiring: true. Growth Signals registered.</p>
+            </div>
+          </div>
+          <div class="timeline-event">
+            <div class="timeline-node"></div>
+            <div class="event-card">
+              <div class="event-header">
+                <span class="event-title">REVIEWS_COLLECTED</span>
+                <span class="event-time">${timestamp}</span>
+              </div>
+              <p class="event-desc">Aggregated ratings matching. Opportunity Score calculated: ${data.score}/100.</p>
+            </div>
+          </div>
+          <div class="timeline-event">
+            <div class="timeline-node"></div>
+            <div class="event-card">
+              <div class="event-header">
+                <span class="event-title">CONTACTS_FOUND</span>
+                <span class="event-time">${timestamp}</span>
+              </div>
+              <p class="event-desc">Discovered ${data.contacts.length} unique targets with confidence co-confirmations.</p>
+            </div>
+          </div>
+        `;
+      }
+    }
+  </script>
+</body>
+</html>
