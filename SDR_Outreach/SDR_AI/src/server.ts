@@ -46,6 +46,11 @@ setInterval(async () => {
   }
 }, 24 * 60 * 60 * 1000);
 
+// Redirect root to demo dashboard
+app.get('/', (req, res) => {
+  res.redirect('/demo.html');
+});
+
 // 1. GET /health
 app.get('/health', async (req, res) => {
   console.log('[GET /health] Received health check request');
