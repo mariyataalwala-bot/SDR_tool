@@ -237,11 +237,11 @@ export class DbHelper {
   /**
    * Upsert a contact.
    */
-  static async upsertContact(companyId: number, email: string, contactData: any): Promise<void> {
+  static async upsertContact(companyId: number, email: string, contactData: any): Promise<any> {
     const active = await checkDbHealth();
     if (active) {
       try {
-        await prisma.contact.upsert({
+        const record = await prisma.contact.upsert({
           where: {
             companyId_email: {
               companyId,
@@ -255,7 +255,7 @@ export class DbHelper {
             ...contactData
           }
         });
-        return;
+        return record;
       } catch (err) {
         console.warn(`[DbHelper] PostgreSQL write error:`, err);
       }
@@ -280,7 +280,9 @@ export class DbHelper {
         company.contacts.push(contact);
       }
       this.saveLocal(local);
+      return contact;
     }
+    return null;
   }
 
   /**

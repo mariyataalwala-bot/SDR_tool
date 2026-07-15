@@ -234,13 +234,13 @@ export class ResearchService {
       }).filter(p => p.name && !p.name.includes('LinkedIn') && p.name.split(' ').length <= 4);
 
       let employeeCount = 50;
-      const empMatch = text.match(/(?:(\d+)\s*(?:-|to|–)\s*)?(\d+)\s*employees/i);
+      const empMatch = websiteText.match(/(?:(\d+)\s*(?:-|to|–)\s*)?(\d+)\s*employees/i);
       if (empMatch) {
         employeeCount = parseInt(empMatch[2], 10);
       }
 
       let headquarters = 'Mumbai, India';
-      const hqMatch = text.match(/(?:HQ|Headquarters|Based in):\s*([a-zA-Z\s]+(?:, [a-zA-Z\s]+)?)/i);
+      const hqMatch = websiteText.match(/(?:HQ|Headquarters|Based in):\s*([a-zA-Z\s]+(?:, [a-zA-Z\s]+)?)/i);
       if (hqMatch) {
         headquarters = hqMatch[1].trim();
       }

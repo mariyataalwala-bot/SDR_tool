@@ -282,17 +282,21 @@ export class SdrOrchestratorPipeline {
               reputation
             );
 
-            // Update contact with copies
-            await prisma.contact.update({
-              where: { id: savedContact.id },
-              data: {
-                connectionNote: copies.connectionNote,
-                emailSubject: copies.emailSubject,
-                emailBody: copies.emailBody,
-                followupSubject: copies.followupSubject,
-                followupBody: copies.followupBody,
-                additionalNotes: copies.additionalNotes
-              }
+            // Update contact with copies via CRM service to ensure fallback database compatibility
+            await this.crm.saveContact(company.id, {
+              name: contact.name,
+              designation: contact.designation,
+              linkedin: contact.linkedin,
+              email: contact.email,
+              phone: contact.phone,
+              sources: contact.sources,
+              confidence: contact.confidence,
+              connectionNote: copies.connectionNote,
+              emailSubject: copies.emailSubject,
+              emailBody: copies.emailBody,
+              followupSubject: copies.followupSubject,
+              followupBody: copies.followupBody,
+              additionalNotes: copies.additionalNotes
             });
 
             // 11. Outreach State Machine Initialize (Outreach Agent)
