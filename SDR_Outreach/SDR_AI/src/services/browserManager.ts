@@ -10,15 +10,28 @@ export class BrowserManager {
   private isCdp = false;
 
   private constructor() {
-    this.persistentDir = path.resolve(process.cwd(), 'linkedin_session');
-    if (!fs.existsSync(this.persistentDir)) {
-      fs.mkdirSync(this.persistentDir, { recursive: true });
+    if (process.env.VERCEL) {
+      this.persistentDir = path.join('/tmp', 'linkedin_session');
+    } else {
+      this.persistentDir = path.resolve(process.cwd(), 'linkedin_session');
+    }
+
+    try {
+      if (!fs.existsSync(this.persistentDir)) {
+        fs.mkdirSync(this.persistentDir, { recursive: true });
+      }
+    } catch (err: any) {
+      console.warn(`[BrowserManager] Read-only filesystem warning for ${this.persistentDir}:`, err.message);
     }
     
     // Wire up cleanup on shutdown
-    process.on('SIGINT', () => this.close());
-    process.on('SIGTERM', () => this.close());
-    process.on('exit', () => this.close());
+    try {
+      process.on('SIGINT', () => this.close());
+      process.on('SIGTERM', () => this.close());
+      process.on('exit', () => this.close());
+    } catch (err) {
+      // Ignore process listener errors if unsupported in serverless
+    }
   }
 
   public static getInstance(): BrowserManager {
